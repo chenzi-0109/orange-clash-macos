@@ -88,7 +88,7 @@
       ]
     },
     "dmg": {
-      "title": "Orange Clash",
+      "title": "Orange Clash ${arch}",
       "artifactName": "Orange-Clash-${version}-macOS-${arch}.dmg",
       "contents": [
         {

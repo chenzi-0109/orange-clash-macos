@@ -48,7 +48,9 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
         run: |
           npm install
-          npm run pack:mac
+          npm run build
+          npx electron-builder --mac --arm64
+          npx electron-builder --mac --x64
           ls -lh release/
 
       - name: Upload DMG Artifacts
