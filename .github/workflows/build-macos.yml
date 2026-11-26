@@ -49,8 +49,8 @@ jobs:
         run: |
           npm install
           npm run build
-          npx electron-builder --mac --arm64
-          npx electron-builder --mac --x64
+          npx electron-builder --mac --arm64 --publish never
+          npx electron-builder --mac --x64 --publish never
           ls -lh release/
 
       - name: Upload DMG Artifacts
@@ -59,4 +59,3 @@ jobs:
           name: Orange-Clash-macOS-DMG
           path: |
             release/*.dmg
-            release/*.zip
