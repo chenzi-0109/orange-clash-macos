@@ -1,0 +1,60 @@
+name: Build Orange Clash macOS
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build-macos:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Generate macOS native icon.icns
+        run: |
+          mkdir -p icon.iconset
+          sips -z 16 16     resources/icon.png --out icon.iconset/icon_16x16.png
+          sips -z 32 32     resources/icon.png --out icon.iconset/icon_16x16@2x.png
+          sips -z 32 32     resources/icon.png --out icon.iconset/icon_32x32.png
+          sips -z 64 64     resources/icon.png --out icon.iconset/icon_32x32@2x.png
+          sips -z 128 128   resources/icon.png --out icon.iconset/icon_128x128.png
+          sips -z 256 256   resources/icon.png --out icon.iconset/icon_128x128@2x.png
+          sips -z 256 256   resources/icon.png --out icon.iconset/icon_256x256.png
+          sips -z 512 512   resources/icon.png --out icon.iconset/icon_256x256@2x.png
+          cp resources/icon.png icon.iconset/icon_512x512.png
+          iconutil -c icns icon.iconset -o resources/icon.icns
+          rm -rf icon.iconset
+
+      - name: Download Mihomo macOS binaries & Geo databases
+        run: |
+          mkdir -p resources/bin
+          TAG="v1.19.34"
+          curl -fSL "https://github.com/MetaCubeX/mihomo/releases/download/${TAG}/mihomo-darwin-arm64-${TAG}.gz" | gunzip > resources/bin/mihomo-arm64
+          curl -fSL "https://github.com/MetaCubeX/mihomo/releases/download/${TAG}/mihomo-darwin-amd64-compatible-${TAG}.gz" | gunzip > resources/bin/mihomo-x64
+          chmod +x resources/bin/mihomo-arm64 resources/bin/mihomo-x64
+          curl -fSL "https://github.com/MetaCubeX/meta-rules-dat/releases/latest/download/geoip.metadb" -o resources/bin/geoip.metadb
+          curl -fSL "https://github.com/MetaCubeX/meta-rules-dat/releases/latest/download/geosite.dat" -o resources/bin/GeoSite.dat
+          ls -lh resources/bin
+
+      - name: Install & Build DMG (Apple Silicon + Intel)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: |
+          npm install
+          npm run pack:mac
+          ls -lh release/
+
+      - name: Upload DMG Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Orange-Clash-macOS-DMG
+          path: |
+            release/*.dmg
+            release/*.zip
